@@ -12,7 +12,7 @@ const TaskBanner: React.FC = () => {
 
   const handleSave = () => {
     if (currentServer) {
-      updateTaskBanner(currentServer.id, bannerText);
+      updateTaskBanner(currentServer._id, bannerText);
       setIsEditing(false);
     }
   };

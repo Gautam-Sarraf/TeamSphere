@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Upload } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import './Modal.css';
 
@@ -27,9 +27,13 @@ const CreateServerModal: React.FC<CreateServerModalProps> = ({ onClose }) => {
 
     try {
       const serverLogo = logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff`;
-      createServer(name, serverLogo);
-      onClose();
-    } catch (err) {
+      const created = await createServer(name, serverLogo);
+      if (created) {
+        onClose();
+      } else {
+        setError('Failed to create server. Please try again.');
+      }
+    } catch {
       setError('Failed to create server. Please try again.');
     } finally {
       setLoading(false);

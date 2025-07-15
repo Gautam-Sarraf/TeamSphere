@@ -23,7 +23,7 @@ const MembersList: React.FC = () => {
             Online — {onlineMembers.length}
           </div>
           {onlineMembers.map(member => (
-            <div key={member.id} className="member-item">
+            <div key={member._id} className="member-item">
               <div className="member-avatar">
                 <img src={member.avatar} alt={member.username} />
                 <div className="status-indicator online">
@@ -47,7 +47,7 @@ const MembersList: React.FC = () => {
             Offline — {offlineMembers.length}
           </div>
           {offlineMembers.map(member => (
-            <div key={member.id} className="member-item offline">
+            <div key={member._id} className="member-item offline">
               <div className="member-avatar">
                 <img src={member.avatar} alt={member.username} />
                 <div className="status-indicator offline">

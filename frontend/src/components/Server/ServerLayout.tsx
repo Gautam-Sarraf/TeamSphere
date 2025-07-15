@@ -16,7 +16,7 @@ const ServerLayout: React.FC<ServerLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     if (serverId) {
-      const server = servers.find(s => s.id === serverId);
+      const server = servers.find(s => s._id === serverId);
       if (server) {
         setCurrentServer(server);
       }

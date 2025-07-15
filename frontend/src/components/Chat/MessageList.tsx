@@ -32,7 +32,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const formatTime = (date: Date) => {
+  const formatTime = (dateLike: Date | string) => {
+    const date = typeof dateLike === 'string' ? new Date(dateLike) : dateLike;
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
@@ -71,7 +72,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     <div className="message-list">
       <div className="messages-container">
         {messages.map((message) => (
-          <div key={message.id} className="message">
+          <div key={message._id || message.id} className="message">
             <div className="message-avatar">
               <img src={message.sender.avatar} alt={message.sender.username} />
             </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Users, Settings, MessageCircle } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
+
 import { useAuth } from '../../contexts/AuthContext';
 import CreateServerModal from './CreateServerModal';
 import JoinServerModal from './JoinServerModal';
@@ -14,9 +15,9 @@ const Dashboard: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
 
-  const handleServerClick = (server: any) => {
+  const handleServerClick = (server: import('../../contexts/AppContext').Server) => {
     setCurrentServer(server);
-    navigate(`/server/${server.id}`);
+    navigate(`/server/${server._id}`);
   };
 
   return (
@@ -46,7 +47,7 @@ const Dashboard: React.FC = () => {
       <div className="servers-grid">
         {servers.map(server => (
           <div
-            key={server.id}
+            key={server._id}
             className="server-card"
             onClick={() => handleServerClick(server)}
           >

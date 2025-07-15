@@ -1,7 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { AppProvider } from './contexts/AppContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Layout/Navbar';
 import Landing from './components/Landing/Landing';
@@ -14,11 +12,9 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <AppProvider>
-        <Router>
-          <div className="app">
-            <Routes>
+    <Router>
+      <div className="app">
+        <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -59,8 +55,6 @@ function App() {
             </Routes>
           </div>
         </Router>
-      </AppProvider>
-    </AuthProvider>
   );
 }
 

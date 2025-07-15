@@ -31,7 +31,7 @@ const JoinServerModal: React.FC<JoinServerModalProps> = ({ onClose }) => {
       } else {
         setError('Invalid invite code. Please check and try again.');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to join server. Please try again.');
     } finally {
       setLoading(false);

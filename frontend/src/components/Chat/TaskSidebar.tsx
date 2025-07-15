@@ -34,7 +34,7 @@ const TaskSidebar: React.FC<TaskSidebarProps> = ({ channelId, isOpen, onClose })
     dueDate: ''
   });
 
-  const currentChannel = currentServer?.channels.find(c => c.id === channelId);
+  const currentChannel = currentServer?.channels.find(c => c._id === channelId);
   const tasks = currentChannel?.tasks || [];
 
   const handleAddTask = (e: React.FormEvent) => {

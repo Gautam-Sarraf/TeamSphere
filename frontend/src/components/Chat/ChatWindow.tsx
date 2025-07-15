@@ -6,6 +6,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import MessageList from './MessageList';
 import FileUpload from './FileUpload';
 import TaskSidebar from './TaskSidebar';
+import getSocket from '../../utils/socket';
+
 import './ChatWindow.css';
 
 const ChatWindow: React.FC = () => {
@@ -16,9 +18,66 @@ const ChatWindow: React.FC = () => {
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [showTaskSidebar, setShowTaskSidebar] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [socket, setSocket] = useState<ReturnType<typeof getSocket> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const currentChannel = currentServer?.channels.find(c => c.id === channelId);
+  const currentChannel = currentServer?.channels.find(c => c._id === channelId);
+
+  
+
+  // Fetch messages on channel change
+  useEffect(() => {
+    if (!currentChannel) return;
+    fetch(`http://localhost:5000/api/channel/${currentChannel._id}/history`)
+      .then(res => res.json())
+      .then(data => setMessages(data.map((m: any) => ({ ...m, id: m._id || m.id }))))
+      .catch(err => {
+        setMessages([]);
+        console.error('Failed to fetch messages:', err);
+      });
+  }, [currentChannel]);
+
+  useEffect(() => {
+    const socketInstance = getSocket();
+    setSocket(socketInstance);
+
+    if (currentChannel) {
+      socketInstance.emit('join channel', currentChannel._id);
+    }
+
+    // Listen for incoming messages
+    socketInstance.on('chat message', (msg: any) => {
+      try {
+        console.log('[Socket] Received chat message:', msg);
+        if (!msg || typeof msg !== 'object') {
+          console.error('Received invalid message:', msg);
+          return;
+        }
+        if (!msg.channelId) {
+          console.error('Received message without channelId:', msg);
+          return;
+        }
+        if (currentChannel && msg.channelId === currentChannel._id) {
+          const normalizedMsg = { ...msg, id: msg._id || msg.id };
+          setMessages(prev => [...prev, normalizedMsg]);
+        } else {
+          console.log('Message for different channel, ignoring:', msg.channelId);
+        }
+      } catch (err) {
+        console.error('Error handling incoming chat message:', err, msg);
+      }
+    });
+
+    // On cleanup, leave the channel room
+    return () => {
+      if (currentChannel) {
+        socketInstance.emit('leave channel', currentChannel._id);
+      }
+      socketInstance.off('chat message');
+    };
+    // eslint-disable-next-line
+  }, [currentChannel]);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -28,21 +87,22 @@ const ChatWindow: React.FC = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!message.trim() || !currentChannel || !user) return;
 
     const newMessage = {
       content: message,
-      sender: {
-        id: user.id,
-        username: user.username,
-        avatar: user.avatar || '',
-        isOnline: true
-      },
-      timestamp: new Date()
+      sender: user.id, // Send only the MongoDB id
+      channelId: currentChannel._id,
+      timestamp: new Date(),
+      file: undefined
     };
 
-    addMessage(currentChannel.id, newMessage);
+    // Emit to backend
+    if (socket) {
+      socket.emit('chat message', newMessage);
+    }
+
     setMessage('');
     setIsTyping(false);
   };
@@ -56,7 +116,7 @@ const ChatWindow: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
-    
+
     if (!isTyping && e.target.value.length > 0) {
       setIsTyping(true);
     } else if (isTyping && e.target.value.length === 0) {
@@ -85,7 +145,7 @@ const ChatWindow: React.FC = () => {
       }
     };
 
-    addMessage(currentChannel.id, fileMessage);
+    addMessage(currentChannel._id, fileMessage);
     setShowFileUpload(false);
   };
 
@@ -124,7 +184,7 @@ const ChatWindow: React.FC = () => {
         </div>
 
         <div className="chat-messages">
-          <MessageList messages={currentChannel.messages} />
+          <MessageList messages={messages} />
         </div>
 
         {isTyping && (
@@ -149,7 +209,7 @@ const ChatWindow: React.FC = () => {
               >
                 <Paperclip size={20} />
               </button>
-              
+
               <input
                 ref={inputRef}
                 type="text"
@@ -160,7 +220,7 @@ const ChatWindow: React.FC = () => {
                 placeholder={`Message #${currentChannel.name}`}
                 maxLength={2000}
               />
-              
+
               <button
                 type="button"
                 className="emoji-btn"
@@ -168,7 +228,7 @@ const ChatWindow: React.FC = () => {
               >
                 <Smile size={20} />
               </button>
-              
+
               <button
                 type="submit"
                 className="send-btn"
@@ -193,7 +253,7 @@ const ChatWindow: React.FC = () => {
       </div>
 
       <TaskSidebar
-        channelId={currentChannel.id}
+        channelId={currentChannel._id}
         isOpen={showTaskSidebar}
         onClose={() => setShowTaskSidebar(false)}
       />
